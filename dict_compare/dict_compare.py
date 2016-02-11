@@ -57,9 +57,6 @@ def compare_dicts(d1: dict, d2: dict, d1name: str="dict1", d2name: str="dict2", 
         """
         return False if filtr is None else filtr(t1, t2)
 
-    def d_key(d):
-        return ':'.join(d.keys())
-
     if d1 == d2:
         return True
 
@@ -72,19 +69,25 @@ def compare_dicts(d1: dict, d2: dict, d1name: str="dict1", d2name: str="dict2", 
         if not mismatched_entry(None, (e, d2[e])):
             n_errors += 1
             print("-  %s: %s" % (n2(e), d2[e]), file=file)
-    for k, v in sorted(d1.items()):
-        if k in d2 and d2[k] != d1[k] and not mismatched_entry((k, d1[k]), (k, d2[k])):
-            if isinstance(d1[k], dict) and isinstance(d2[k], dict):
-                if not compare_dicts(d1[k], d2[k], n1(k), n2(k), file, filtr):
+    for k, v1 in sorted(d1.items()):
+        if k in d2:
+            v2 = d2[k]
+            if v1 != v2 and not mismatched_entry((k, v1), (k, v2)):
+                if isinstance(v1, dict) and isinstance(v2, dict):
+                    if not compare_dicts(v1, v2, n1(k), n2(k), file, filtr):
+                        n_errors += 1
+                elif isinstance(v1, list) and isinstance(v2, list):
+                    if len(v1) == len(v2) and all(e in v2 for e in v1):
+                        n_errors += 1
+                        print("<ordering> %s: %s\n" % (d1name + '.' + k, d1[k]), file=file)
+                        print("           %s: %s\n" % (d2name + '.' + k, d2[k]), file=file)
+                    else:
+                        print("< %s: %s" % (d1name + '.' + k, str(v1)), file=file)
+                        print("> %s: %s" % (d2name + '.' + k, str(v2)), file=file)
+                else:
                     n_errors += 1
-            elif isinstance(d1[k], list) and isinstance(d2[k], list):
-                if len(d1[k]) == len(d2[k]) and all(e in d1[k] for e in d2[k]):
-                    n_errors += 1
-                    print("<ordering> %s: %s" % (d1name + '.' + k, d1[k]), file=file)
-            else:
-                n_errors += 1
-                print("< %s: %s" % (d1name + '.' + k, d1[k]), file=file)
-                print("> %s: %s" % (d2name + '.' + k, d2[k]), file=file)
+                    print("< %s: %s" % (d1name + '.' + k, d1[k]), file=file)
+                    print("> %s: %s" % (d2name + '.' + k, d2[k]), file=file)
     return n_errors == 0
 
 

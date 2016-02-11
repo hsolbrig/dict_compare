@@ -79,5 +79,19 @@ class DictCompareTestCase(unittest.TestCase):
 > dict2.b.c: 0
 """, dict_compare(d1, d2, filtr=filtr)[1])
 
+    def test_ordering(self):
+        d1 = dict(a=['andy', 'john', dict(rel='brothers')])
+        d2 = dict(a=['john', 'andy', dict(rel='brothers')])
+        self.assertEqual(dict_compare(d1, d2), (False, "--- dict1\n+++ dict2\n\n"
+                                                       "<ordering> dict1.a: ['andy', 'john', {'rel': 'brothers'}]\n\n"
+                                                       "           dict2.a: ['john', 'andy', {'rel': 'brothers'}]\n\n"))
+        d2['a'][2]['rel'] = 'sisters'
+        self.assertEqual(dict_compare(d1, d2), (True, "--- dict1\n+++ dict2\n\n"
+                                                      "< dict1.a: ['andy', 'john', {'rel': 'brothers'}]\n"
+                                                      "> dict2.a: ['john', 'andy', {'rel': 'sisters'}]\n"))
+        d2 = dict(a=['andy', 'john', dict(rel='brothers')])
+        self.assertTrue(dict_compare(d1, d2)[0])
+
+
 if __name__ == '__main__':
     unittest.main()
