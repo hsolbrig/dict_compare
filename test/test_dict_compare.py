@@ -92,6 +92,11 @@ class DictCompareTestCase(unittest.TestCase):
         d2 = dict(a=['andy', 'john', dict(rel='brothers')])
         self.assertTrue(dict_compare(d1, d2)[0])
 
+    def test_compare_dicts(self):
+        d1 = dict(a=['andy', 'john', dict(rel='brothers')])
+        d2 = dict(a=['john', 'andy', dict(rel='brothers')])
+        self.assertFalse(compare_dicts(d1, d2))
+
 
 if __name__ == '__main__':
     unittest.main()

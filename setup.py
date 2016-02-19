@@ -12,7 +12,7 @@ else:
 
 setup(
     name='yadict_compare',
-    version='1.0.3',
+    version='1.0.4',
     packages=['dict_compare'],
     url='http://github.com/hsolbrig/dict_compare',
     license='BSD 3-Clause license',

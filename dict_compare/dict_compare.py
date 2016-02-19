@@ -32,7 +32,7 @@ kv_pair = Tuple[Any, Any]
 
 
 def compare_dicts(d1: dict, d2: dict, d1name: str="dict1", d2name: str="dict2", file=sys.stdout,
-                  filtr=Callable[[kv_pair, kv_pair], bool]) -> bool:
+                  filtr: Optional[Callable[[kv_pair, kv_pair], bool]]=None) -> bool:
     """ Recursively compare the two dictionaries.
     :param d1: First dictionary
     :param d2: Second dictionary
