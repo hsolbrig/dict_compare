@@ -27,4 +27,4 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from dict_compare.dict_compare import dict_compare
+from dict_compare.dict_compare import dict_compare, compare_dicts
