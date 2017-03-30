@@ -86,7 +86,7 @@ class DictCompareTestCase(unittest.TestCase):
                                                        "<ordering> dict1.a: ['andy', 'john', {'rel': 'brothers'}]\n\n"
                                                        "           dict2.a: ['john', 'andy', {'rel': 'brothers'}]\n\n"))
         d2['a'][2]['rel'] = 'sisters'
-        self.assertEqual(dict_compare(d1, d2), (True, "--- dict1\n+++ dict2\n\n"
+        self.assertEqual(dict_compare(d1, d2), (False, "--- dict1\n+++ dict2\n\n"
                                                       "< dict1.a: ['andy', 'john', {'rel': 'brothers'}]\n"
                                                       "> dict2.a: ['john', 'andy', {'rel': 'sisters'}]\n"))
         d2 = dict(a=['andy', 'john', dict(rel='brothers')])
@@ -95,6 +95,11 @@ class DictCompareTestCase(unittest.TestCase):
     def test_compare_dicts(self):
         d1 = dict(a=['andy', 'john', dict(rel='brothers')])
         d2 = dict(a=['john', 'andy', dict(rel='brothers')])
+        self.assertFalse(compare_dicts(d1, d2))
+
+    def test_different_lengths(self):
+        d1 = dict(a=["a", "b", dict(c='foo')])
+        d2 = dict(a=["a", "b"])
         self.assertFalse(compare_dicts(d1, d2))
 
 

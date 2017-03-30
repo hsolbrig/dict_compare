@@ -82,6 +82,7 @@ def compare_dicts(d1: dict, d2: dict, d1name: str="dict1", d2name: str="dict2", 
                         print("<ordering> %s: %s\n" % (d1name + '.' + k, d1[k]), file=file)
                         print("           %s: %s\n" % (d2name + '.' + k, d2[k]), file=file)
                     else:
+                        n_errors += 1
                         print("< %s: %s" % (d1name + '.' + k, str(v1)), file=file)
                         print("> %s: %s" % (d2name + '.' + k, str(v2)), file=file)
                 else:
