@@ -102,6 +102,26 @@ class DictCompareTestCase(unittest.TestCase):
         d2 = dict(a=["a", "b"])
         self.assertFalse(compare_dicts(d1, d2))
 
+    def test_json_numerics(self):
+        d1 = dict(v='123')
+        d2 = dict(v=123)
+        self.assertFalse(compare_dicts(d1, d2))
+        self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+        self.assertTrue(compare_dicts(d2, d1, filtr=json_filtr))
+        d2 = dict(v=124)
+        self.assertFalse(compare_dicts(d1, d2, filtr=json_filtr))
+        d1 = dict(v=123)
+        self.assertFalse(compare_dicts(d1, d2, filtr=json_filtr))
+        d2 = dict(v2="123")
+        self.assertFalse(compare_dicts(d1, d2, filtr=json_filtr))
+        d1 = dict(v="12.5")
+        d2 = dict(v=12.5)
+        self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+        d2 = dict(v=12.50)
+        self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+        d1 = dict(v="12.50")
+        self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+
 
 if __name__ == '__main__':
     unittest.main()
