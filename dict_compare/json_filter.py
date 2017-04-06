@@ -25,23 +25,12 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
-from typing import Tuple, Any
+from typing import Tuple, Any, Union
+from dict_compare import compare_dicts
 
 
-def json_filtr(kv1: Tuple[Any, Any], kv2: Tuple[Any, Any]) -> bool:
-    # To qualify:
-    #   1) The keys must be strings
-    #   2) The keys must match
-    #   3) Exactly one of the values must be a string
-    if kv1 is None or kv2 is None:
-        return False
-    v1_is_string = isinstance(kv1[1], str)
-    if not isinstance(kv1[0], str) or kv1[0] != kv2[0] or v1_is_string == isinstance(kv2[1], str):
-        return False
-
+def compare_values(string_val: str, numeric_val: Union[int, float]) -> bool:
     # Try to match the numeric portion with the corresponding string
-    numeric_val = kv2[1] if v1_is_string else kv1[1]
-    string_val = kv1[1] if v1_is_string else kv2[1]
     if isinstance(numeric_val, int):
         return string_val.isdigit() and int(string_val) == numeric_val
     elif isinstance(numeric_val, float):
@@ -50,5 +39,24 @@ def json_filtr(kv1: Tuple[Any, Any], kv2: Tuple[Any, Any]) -> bool:
         except ValueError:
             pass
     return False
+
+
+def json_filtr(kv1: Tuple[Any, Any], kv2: Tuple[Any, Any]) -> bool:
+    # To qualify:
+    #   1) The keys must be strings
+    #   2) The keys must match
+    #   3) Exactly one of the values must be a string
+    if kv1 is None or kv2 is None or \
+            (kv1[0] is not None and not isinstance(kv1[0], str)) or kv1[0] != kv2[0]:
+        return False
+    v1_is_string = isinstance(kv1[1], str)
+    if v1_is_string == isinstance(kv2[1], str):
+        return False
+
+    # Try to match the numeric portion with the corresponding string
+    numeric_val = kv2[1] if v1_is_string else kv1[1]
+    string_val = kv1[1] if v1_is_string else kv2[1]
+    return compare_values(string_val, numeric_val)
+
 
 

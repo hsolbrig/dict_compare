@@ -121,6 +121,9 @@ class DictCompareTestCase(unittest.TestCase):
         self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
         d1 = dict(v="12.50")
         self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+        d1 = dict(a=["a", "17", dict(c=143)])
+        d2 = dict(a=["a", 17, dict(c="143")])
+        self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
 
 
 if __name__ == '__main__':
