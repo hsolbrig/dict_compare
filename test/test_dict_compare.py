@@ -124,6 +124,30 @@ class DictCompareTestCase(unittest.TestCase):
         d1 = dict(a=["a", "17", dict(c=143)])
         d2 = dict(a=["a", 17, dict(c="143")])
         self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+        d1 = dict(a=[["a", "017.0", dict(c="05")]])
+        d2 = dict(a=[["a", 17, dict(c=5)]])
+        self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+
+    def test_json_bools(self):
+        d1 = dict(a=["1", "T", "True", "TRUE", "true"])
+        d2 = dict(a=[True, True, True, True, True])
+        self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+        self.assertFalse(compare_dicts(d1, d2))
+        d1 = dict(a=["0", "F", "False", "false", "FALSE"])
+        d2 = dict(a=[False, False, False, False, False])
+        self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+        d1 = dict(a=["0"])
+        d2 = dict(a=[True])
+        self.assertFalse(compare_dicts(d1, d2, filtr=json_filtr))
+        d1 = dict(a=["1"])
+        d2 = dict(a=[False])
+        self.assertFalse(compare_dicts(d1, d2, filtr=json_filtr))
+        d1 = dict(a=["00"])
+        d2 = dict(a=[False])
+        self.assertFalse(compare_dicts(d1, d2, filtr=json_filtr))
+        d1 = dict(a=["01"])
+        d2 = dict(a=[True])
+        self.assertFalse(compare_dicts(d1, d2, filtr=json_filtr))
 
 
 if __name__ == '__main__':

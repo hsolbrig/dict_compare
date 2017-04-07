@@ -25,19 +25,22 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
-from typing import Tuple, Any, Union
-from dict_compare import compare_dicts
+from typing import Tuple, Any
 
 
-def compare_values(string_val: str, numeric_val: Union[int, float]) -> bool:
+def compare_values(string_val: str, json_val: Any) -> bool:
+    if isinstance(json_val, bool):
+        # Note - this is probably too liberal but should be good enough
+        if (string_val in ("1", "T", "t", "True", "true", "TRUE") and json_val) or \
+           (string_val in ("0", "F", "f", "False", "false", "FALSE") and not json_val):
+            return True
     # Try to match the numeric portion with the corresponding string
-    if isinstance(numeric_val, int):
-        return string_val.isdigit() and int(string_val) == numeric_val
-    elif isinstance(numeric_val, float):
+    elif isinstance(json_val, (int, float)):
         try:
-            return float(string_val) == numeric_val
+            return float(string_val) == json_val
         except ValueError:
             pass
+
     return False
 
 
