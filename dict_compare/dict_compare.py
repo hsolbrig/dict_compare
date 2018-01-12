@@ -25,17 +25,23 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
-import sys
-from typing import Callable, Tuple, Any, Optional
+from collections import OrderedDict
+from typing import Callable, Tuple, Any, Optional, List, Dict, IO
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 
 kv_pair = Tuple[Any, Any]
 
 
-def compare_dicts(d1: dict, d2: dict, d1name: str="dict1", d2name: str="dict2", file=sys.stdout,
+def compare_dicts(dict1: Dict, dict2: Dict, d1name: str= "dict1", d2name: str= "dict2", file=None,
                   filtr: Optional[Callable[[kv_pair, kv_pair], bool]]=None) -> bool:
     """ Recursively compare the two dictionaries.
-    :param d1: First dictionary
-    :param d2: Second dictionary
+    :param dict1: First dictionary
+    :param dict2: Second dictionary
     :param d1name: Name of the first dictionary for mismatch reporting
     :param d2name: Name of the second dictionary for mismatch reporting
     :param file: Report output file (default: sys.stdout)
@@ -49,7 +55,7 @@ def compare_dicts(d1: dict, d2: dict, d1name: str="dict1", d2name: str="dict2", 
     def n2(key: Any) -> str:
         return d2name + '.' + str(key)
 
-    def mismatched_entry(t1: Optional[kv_pair], t2: Optional[kv_pair]) -> None:
+    def mismatched_entry(t1: Optional[kv_pair], t2: Optional[kv_pair]) -> bool:
         """ Invoked when either t1 or t2 is missing
         :param t1: dict1 entry or None if not present
         :param t2: dict2 entry or None if not present
@@ -60,9 +66,7 @@ def compare_dicts(d1: dict, d2: dict, d1name: str="dict1", d2name: str="dict2", 
     def compare_list(l1: list, l2: list) -> bool:
         matches = False
         if len(l1) == len(l2) and len(l1) > 0:
-            for e in zip(l1, l2):
-                v1e = e[0]
-                v2e = e[1]
+            for v1e, v2e in zip(l1, l2):
                 matches = v1e == v2e or (filtr and filtr((None, v1e), (None, v2e)))
                 if not matches:
                     if isinstance(v1e, dict) and isinstance(v2e, dict) and filtr:
@@ -73,8 +77,19 @@ def compare_dicts(d1: dict, d2: dict, d1name: str="dict1", d2name: str="dict2", 
                     break
         return matches
 
-    if d1 == d2:
+    def order_element(element: Any) -> Any:
+        if isinstance(element, List):
+            return [order_element(el) for el in element]
+        elif isinstance(element, dict):
+            return OrderedDict([(key, order_element(v)) for key, v in sorted(element.items())])
+        else:
+            return element
+
+    if dict1 == dict2:
         return True
+    
+    d1 = order_element(dict1)
+    d2 = order_element(dict2)
 
     n_errors = 0
     for e in sorted(list(set(d1.keys()) - set(d2.keys()))):
@@ -118,15 +133,10 @@ def dict_compare(d1: dict, d2: dict, d1name: str="dict1", d2name: str="dict2", f
     :param filtr: comparison filter. Signature: filtr( i1: (k, v), i2: (k, v)) -> bool:
     :return: Tuple - True/False, error report
     """
-    class MemFile:
-        def __init__(self):
-            self.text = ""
-
-        def write(self, txt):
-            self.text += txt
-
-    of = MemFile()
+    of = StringIO()             # type: Optional[IO[str]]
     print("--- %s" % d1name, file=of)
-    print("+++ %s" % d2name, file=of)
-    print(file=of)
-    return compare_dicts(d1, d2, d1name, d2name, file=of, filtr=filtr), of.text
+    print("+++ %s\n" % d2name, file=of)
+    rval = compare_dicts(d1, d2, d1name, d2name, file=of, filtr=filtr)
+    rtxt = of.getvalue()
+    of.close()
+    return rval, rtxt

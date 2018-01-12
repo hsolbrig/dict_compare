@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2015, Mayo Clinic
+# Copyright (c) 2017, Mayo Clinic
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification,
@@ -12,7 +11,7 @@
 #     this list of conditions and the following disclaimer in the documentation
 #     and/or other materials provided with the distribution.
 #
-#     Neither the name of the <ORGANIZATION> nor the names of its contributors
+#     Neither the name of the Mayo Clinic nor the names of its contributors
 #     may be used to endorse or promote products derived from this software
 #     without specific prior written permission.
 #
@@ -26,6 +25,37 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
+import sys
+import io
+from typing import List
 
-from dict_compare.dict_compare import dict_compare, compare_dicts
-from dict_compare.json_filter import json_filtr
+
+class OutputRedirector:
+    save_stdout = []
+    save_stderr = []
+
+    def _push_stdout(self) -> None:
+        self.save_stdout.append(sys.stdout)
+        sys.stdout = io.StringIO()
+
+    def _pop_stdout(self) -> io.StringIO:
+        sys.stdout.flush()
+        rval = sys.stdout
+        if self.save_stdout:
+            sys.stdout = self.save_stdout.pop()
+        return rval
+
+    def _push_stderr(self) -> None:
+        self.save_stderr.append(sys.stderr)
+        sys.stderr = io.StringIO()
+
+    def _pop_stderr(self) -> io.StringIO:
+        sys.stderr.flush()
+        rval = sys.stderr
+        if self.save_stderr:
+            sys.stderr = self.save_stderr.pop()
+        return rval
+
+    def tearDown(self):
+        self._pop_stdout()
+        self._pop_stderr()

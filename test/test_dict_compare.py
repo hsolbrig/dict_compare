@@ -28,10 +28,14 @@
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unittest
+
+import sys
+
 from dict_compare import *
+from test.output_redirector import OutputRedirector
 
 
-class DictCompareTestCase(unittest.TestCase):
+class DictCompareTestCase(unittest.TestCase, OutputRedirector):
     def test_basic(self):
         d1 = dict(a='foo')
         d2 = dict(a='foo')
@@ -82,30 +86,47 @@ class DictCompareTestCase(unittest.TestCase):
     def test_ordering(self):
         d1 = dict(a=['andy', 'john', dict(rel='brothers')])
         d2 = dict(a=['john', 'andy', dict(rel='brothers')])
-        self.assertEqual(dict_compare(d1, d2), (False, "--- dict1\n+++ dict2\n\n"
-                                                       "<ordering> dict1.a: ['andy', 'john', {'rel': 'brothers'}]\n\n"
-                                                       "           dict2.a: ['john', 'andy', {'rel': 'brothers'}]\n\n"))
+        self.assertEqual((
+             False,
+             '--- dict1\n'
+             '+++ dict2\n'
+             '\n'
+             "<ordering> dict1.a: ['andy', 'john', OrderedDict([('rel', 'brothers')])]\n"
+             '\n'
+             "           dict2.a: ['john', 'andy', OrderedDict([('rel', 'brothers')])]\n"
+             '\n'), dict_compare(d1, d2))
+
         d2['a'][2]['rel'] = 'sisters'
-        self.assertEqual(dict_compare(d1, d2), (False, "--- dict1\n+++ dict2\n\n"
-                                                      "< dict1.a: ['andy', 'john', {'rel': 'brothers'}]\n"
-                                                      "> dict2.a: ['john', 'andy', {'rel': 'sisters'}]\n"))
+        self.assertEqual(
+            (False,
+             '--- dict1\n'
+             '+++ dict2\n'
+             '\n'
+             "< dict1.a: ['andy', 'john', OrderedDict([('rel', 'brothers')])]\n"
+             "> dict2.a: ['john', 'andy', OrderedDict([('rel', 'sisters')])]\n"), dict_compare(d1, d2))
+
         d2 = dict(a=['andy', 'john', dict(rel='brothers')])
         self.assertTrue(dict_compare(d1, d2)[0])
 
     def test_compare_dicts(self):
+        self._push_stdout()
         d1 = dict(a=['andy', 'john', dict(rel='brothers')])
         d2 = dict(a=['john', 'andy', dict(rel='brothers')])
         self.assertFalse(compare_dicts(d1, d2))
+        self._pop_stdout()
 
     def test_different_lengths(self):
+        self._push_stdout()
         d1 = dict(a=["a", "b", dict(c='foo')])
         d2 = dict(a=["a", "b"])
         self.assertFalse(compare_dicts(d1, d2))
+        self._pop_stdout()
 
     def test_json_numerics(self):
+        self._push_stdout()
         d1 = dict(v='123')
         d2 = dict(v=123)
-        self.assertFalse(compare_dicts(d1, d2))
+        self.assertFalse(compare_dicts(d1, d2, file=sys.stdout))
         self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
         self.assertTrue(compare_dicts(d2, d1, filtr=json_filtr))
         d2 = dict(v=124)
@@ -127,8 +148,10 @@ class DictCompareTestCase(unittest.TestCase):
         d1 = dict(a=[["a", "017.0", dict(c="05")]])
         d2 = dict(a=[["a", 17, dict(c=5)]])
         self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
+        self._pop_stdout()
 
     def test_json_bools(self):
+        self._push_stdout()
         d1 = dict(a=["1", "T", "True", "TRUE", "true"])
         d2 = dict(a=[True, True, True, True, True])
         self.assertTrue(compare_dicts(d1, d2, filtr=json_filtr))
@@ -148,6 +171,7 @@ class DictCompareTestCase(unittest.TestCase):
         d1 = dict(a=["01"])
         d2 = dict(a=[True])
         self.assertFalse(compare_dicts(d1, d2, filtr=json_filtr))
+        self._pop_stdout()
 
 
 if __name__ == '__main__':
